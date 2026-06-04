@@ -1,53 +1,66 @@
 FloodFill interactive segmentation
-================================
+=================================
 
-Prerequisiti
+Overview
+--------
+This repository contains a lightweight, standalone Python tool for interactive segmentation of medical images. It combines a seed-based intensity selection with a spatial radius constraint and post-processing to produce solid (hole-free) object masks. The workflow is meant for quick manual annotation and review.
+
+Algorithm
+---------
+- Seed-based selection: on left-click the tool reads the grayscale intensity at the seed and selects pixels whose intensity is within `tol` of the seed value and within `radius` pixels from the seed.
+- Connected component: only the connected component containing the seed is kept (so distant similar-intensity regions are excluded).
+- Hole-filling: masks are post-processed (morphological closing and flood-fill) to remove internal holes so the segmentation is a single filled surface.
+
+Features
+--------
+- Interactive seed-based segmentation with adjustable `tol` and `radius`.
+- Manual painting/erasing (`m` to toggle); `brush` trackbar controls brush size.
+- Undo (`u`), reset (`r`), create empty mask (`c`).
+- Save outputs including an RGB class mask and overlay preview.
+
+Requirements
+------------
 - Python 3.8+
-- OpenCV and numpy
+- OpenCV and NumPy
 
-Installazione
+Install
+-------
 ```
-pip install opencv-python numpy
+pip install -r requirements.txt
 ```
 
-Uso
+Quick start
+-----------
 ```
 python floodfill_segmentation.py -i /path/to/images -o masks -t 10
 ```
 
-Controlli
-- Left-click: aggiungi seed e crea una maschera usando `cv2.floodFill`.
-- Trackbar `tol`: regola la tolleranza (loDiff/upDiff).
-- `s`: salva le maschere create per l'immagine corrente nella cartella di output.
-- `r`: reset delle maschere per l'immagine corrente.
-- `u`: annulla l'ultima maschera creata (undo).
-- Trackbar `radius`: raggio spaziale (in pixel) attorno al seed; la maschera sarà limitata ai pixel entro questo raggio e con intensità simile.
-- `n`: immagine successiva.
-
-- `m`: toggle modalità manuale (paint). In modalità manuale puoi disegnare direttamente sulle maschere:
-	- sinistro: dipingi (aggiungi) pixel alla maschera corrente
-	- destro: cancella (erase) pixel dalla maschera corrente
-	- `brush` trackbar: dimensione del pennello in pixel
-	- `c`: crea una nuova maschera vuota da editare
-- `p`: immagine precedente.
-- `q`: esci.
+Controls
+--------
+- Left-click: add seed and create mask
+- `tol` (trackbar): intensity tolerance
+- `radius` (trackbar): spatial radius in pixels
+- `m`: toggle manual paint mode (left add, right erase)
+- `brush` (trackbar): brush size
+- `u`: undo last mask
+- `r`: reset masks
+- `c`: create empty mask
+- `s`: save masks
+- `v`: cycle display (`both`, `overlay`, `original`)
+- `n` / `p`: next / previous image
+- `q`: quit
 
 Output
-- Le maschere vengono salvate in formato PNG binario (0/255) in `INPUT_FOLDER/masks` per default, come `image_basename_mask_1.png`, `image_basename_mask_2.png`, ecc.
+------
+Saved files are placed in `INPUT_FOLDER/OUTPUT_FOLDER` (default `INPUT_FOLDER/masks`):
+- `image_basename_masks_overlay.png` — overlay preview of masks
+- `image_basename_classmask.png` — RGB image where each mask is colored distinctly
+- optionally, individual binary masks `image_basename_mask_1.png`, ... (use `--no-binaries` to skip them)
 
-- L'anteprima a video mostra l'immagine originale e a fianco un overlay con le maschere colorate (maschere multiple hanno colori distinti).
-- Quando si preme `s` per salvare, lo script salva anche un file composito a colori (`image_basename_masks_overlay.png`) nella stessa cartella di output.
- - Quando si preme `s` per salvare, lo script salva:
-	 - i singoli file binari per ogni maschera (`image_basename_mask_1.png`, ...),
-	 - un file composito overlay (`image_basename_masks_overlay.png`),
-	 - un unico file `image_basename_classmask.png` dove ogni classe (maschera) è colorata con un colore distinto (PNG RGB).
-  
-- Se non vuoi i singoli file binari, avvia lo script con `--no-binaries` per salvare solo il composito e il file class-colored:
-	```
-	python floodfill_segmentation.py -i path/to/images -o masks -t 10 --no-binaries
-	```
-  
-- Premi `v` per alternare la visualizzazione: `both` (original + overlay), `overlay` (solo overlay colorato), `original` (solo immagine originale). Questo permette di lavorare su un'immagine alla volta.
+Example
+-------
+An example output image is included: `example_output.png` (class-colored masks on a sample image).
 
-Note
-- Lo script non usa Docker né Label Studio; è standalone e lavora su immagini locali.
+Inline example overlay for your dataset:
+
+![Overlay example](A/20240916-RM%20ABDOMEN(FP)/6001-EX%20AX%20T2%20FS/masks/6001-EX_AX_T2_FS_000000_masks_overlay.png)
