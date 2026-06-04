@@ -21,5 +21,3 @@ env/
 .DS_Store
 Thumbs.db
 
-# Output masks (created by this tool)
-masks/
