@@ -179,15 +179,20 @@ def main():
     cv2.namedWindow(ctrl_win, cv2.WINDOW_NORMAL)
     print('Image window fixed; controls are in separate window `Controls`. Click maps directly to image pixels.')
 
-    display = {'mode': 'both'}
+    display = {'mode': 'both', 'scale': 1}
 
     def on_mouse(event, x, y, flags, param):
-        # map x to image coordinates if showing two panels side-by-side
+        # map x/y from scaled display back to raw image coordinates
+        scale = display['scale']
         img_x = x
-        if display['mode'] == 'both' and x >= segmenter.w:
-            img_x = x - segmenter.w
+        if display['mode'] == 'both':
+            panel_width = segmenter.w * scale
+            if img_x >= panel_width:
+                img_x -= panel_width
+        img_x = img_x // scale
         img_x = max(0, min(segmenter.w - 1, img_x))
-        img_y = max(0, min(segmenter.h - 1, y))
+        img_y = y // scale
+        img_y = max(0, min(segmenter.h - 1, img_y))
 
         if segmenter.manual_mode:
             # painting mode: left button = add, right button = erase
@@ -228,19 +233,28 @@ def main():
     def on_trackbar_brush(val):
         segmenter.brush = max(1, val)
 
+    def on_trackbar_zoom(val):
+        display['scale'] = max(1, val)
+
     max_radius = max(segmenter.h, segmenter.w)
     cv2.createTrackbar('tol', ctrl_win, segmenter.tol, 255, on_trackbar_tol)
     cv2.createTrackbar('radius', ctrl_win, segmenter.radius, max_radius, on_trackbar_radius)
     cv2.createTrackbar('brush', ctrl_win, segmenter.brush, 100, on_trackbar_brush)
+    cv2.createTrackbar('zoom', ctrl_win, display['scale'], 4, on_trackbar_zoom)
 
     while True:
         vis = segmenter.overlay_preview(mode=display['mode'])
+        scale = display['scale']
+        if scale > 1:
+            display_vis = cv2.resize(vis, (vis.shape[1] * scale, vis.shape[0] * scale), interpolation=cv2.INTER_LINEAR)
+        else:
+            display_vis = vis
         # ensure window matches image size so clicks map correctly
         try:
-            cv2.resizeWindow(window, vis.shape[1], vis.shape[0])
+            cv2.resizeWindow(window, display_vis.shape[1], display_vis.shape[0])
         except Exception:
             pass
-        cv2.imshow(window, vis)
+        cv2.imshow(window, display_vis)
         key = cv2.waitKey(30) & 0xFF
         if key == ord('q'):
             break

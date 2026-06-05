@@ -42,6 +42,7 @@ Controls
 - `radius` (trackbar): spatial radius in pixels
 - `m`: toggle manual paint mode (left add, right erase)
 - `brush` (trackbar): brush size
+- `zoom` (trackbar): display zoom factor for precise seeding
 - `u`: undo last mask
 - `r`: reset masks
 - `c`: create empty mask
