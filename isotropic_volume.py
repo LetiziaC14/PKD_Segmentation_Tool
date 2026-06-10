@@ -60,11 +60,20 @@ def create_multi_view_stack(axial_dir, sagittal_dirs, coronal_dir):
     
     return stack.astype(np.float32), axial_master
 
-axial_path = "Dicom_Torra/8001-AX T2 HASTE"
-sagittal_paths = ["Dicom_Torra/11001-SAG T2 HASTE DERECHO", "Dicom_Torra/12001-SAG T2 HASTE IZQUIERDO"]
-coronal_path = "Dicom_Torra/10001-COR T2 HASTE"
+if __name__ == "__main__":
+    from pathlib import Path
 
-# input_stack avrà shape (3, Z, H, W)
-input_stack, axial_master = create_multi_view_stack(axial_path, sagittal_paths, coronal_path)
+    study_root = Path("A/20240916-RM ABDOMEN(FP)")
+    axial_path = study_root / "8001-AX T2 HASTE"
+    sagittal_paths = [
+        study_root / "11001-SAG T2 HASTE DERECHO",
+        study_root / "12001-SAG T2 HASTE IZQUIERDO",
+    ]
+    coronal_path = study_root / "10001-COR T2 HASTE"
 
-print(f"Tensore multi-view creato con shape: {input_stack.shape}")
+    input_stack, axial_master = create_multi_view_stack(
+        str(axial_path),
+        [str(p) for p in sagittal_paths],
+        str(coronal_path),
+    )
+    print(f"Tensore multi-view creato con shape: {input_stack.shape}")

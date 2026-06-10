@@ -1,6 +1,5 @@
 import SimpleITK as sitk
 import numpy as np
-from isotropic_volume import input_stack, axial_master
 
 def prepare_kidney_mask(coronal_mask_path, axial_master):
     """
@@ -62,16 +61,25 @@ def save_volume_nifti(volume_image, output_path):
     print(f"Volume salvato come NIfTI: {output_path}")
 
 
-# --- EXAMPLE EXECUTION ---
-# Uses input_stack and axial_master imported from isotropic_volume.py
-# and applies the coronal mask to produce the final input tensor.
+if __name__ == "__main__":
+    from pathlib import Path
 
-coronal_mask_path = "Kidney_mask/10001 COR T2 HASTE.nii.gz"
-kidney_mask_3d = prepare_kidney_mask(coronal_mask_path, axial_master)
-save_mask_nifti(kidney_mask_3d, "Kidney_mask/kidney_mask_3d.nii.gz")
+    from isotropic_volume import create_multi_view_stack
 
-# Salva anche il volume RM assiale (axial_master) come NIfTI per Slicer
-save_volume_nifti(axial_master, "Dicom_Torra/axial_master.nii.gz")
+    study_root = Path("A/20240916-RM ABDOMEN(FP)")
+    input_stack, axial_master = create_multi_view_stack(
+        str(study_root / "8001-AX T2 HASTE"),
+        [
+            str(study_root / "11001-SAG T2 HASTE DERECHO"),
+            str(study_root / "12001-SAG T2 HASTE IZQUIERDO"),
+        ],
+        str(study_root / "10001-COR T2 HASTE"),
+    )
 
-final_tensor = final_pipeline_integration(input_stack, axial_master, coronal_mask_path)
-print(f"Final tensor ready for U-Net: {final_tensor.shape}")
+    coronal_mask_path = "Kidney_mask/COR/pred_vol.nii"
+    kidney_mask_3d = prepare_kidney_mask(coronal_mask_path, axial_master)
+    save_mask_nifti(kidney_mask_3d, "Kidney_mask/kidney_mask_3d.nii.gz")
+    save_volume_nifti(axial_master, "Dicom_Torra/axial_master.nii.gz")
+
+    final_tensor = final_pipeline_integration(input_stack, axial_master, coronal_mask_path)
+    print(f"Final tensor ready for U-Net: {final_tensor.shape}")

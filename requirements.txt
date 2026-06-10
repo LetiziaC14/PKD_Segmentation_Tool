@@ -1,2 +1,6 @@
 opencv-python
 numpy
+SimpleITK
+tensorflow
+matplotlib
+h5py
