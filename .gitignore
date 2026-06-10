@@ -21,3 +21,5 @@ env/
 .DS_Store
 Thumbs.db
 
+# Weights
+best_autokidneycyst_weights.weights.h5
